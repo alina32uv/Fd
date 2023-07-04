@@ -57,8 +57,8 @@ namespace FoodDelivery.Controllers
 
 
         
-        [Authorize(Roles = "Admin,Driver")]
-        [HttpPut("stdriver/{id}")]
+        [Authorize(Roles = "admin,driver")]
+        [HttpPut("setdriver/{id}")]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] FoodOrdersForUpdateDto order)
         {
             var dbOrder = await ordersRepo.GetOrder(id);

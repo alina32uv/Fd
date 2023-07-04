@@ -51,8 +51,8 @@ namespace FoodDelivery.Controllers
 
 
         }
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
+        [Authorize(Roles = "admin")]
+        [HttpPost ("AddUser")]
         public async Task<ActionResult> CreateUser([FromBody] UsersForCreationDto user)
         {
             var createdUser = await usersRepo.CreateUser(user);

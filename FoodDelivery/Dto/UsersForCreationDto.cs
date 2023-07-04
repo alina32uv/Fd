@@ -15,6 +15,6 @@ namespace FoodDelivery.Dto
         [StringLength(255)]
         public string Email { get; set; }
         [Required]
-        public byte[] Password { get; set; }
+        public string Password { get; set; }
     }
 }

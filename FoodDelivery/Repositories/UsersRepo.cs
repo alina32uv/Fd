@@ -19,14 +19,14 @@ namespace FoodDelivery.Repositories
         public async Task<UsersModel> CreateUser(UsersForCreationDto user)
         {
             var query = "INSERT INTO users (first_name, last_name, email, password)" +
-                " VALUES ( @FName, @LName, @Email, CONVERT(BINARY, @Password)) " +
+                " VALUES ( @FName, @LName, @Email,  @Password) " +
                 "SELECT CAST(SCOPE_IDENTITY() AS int)";
 
             var parameters = new DynamicParameters();
             parameters.Add("FName", user.FName, DbType.String);
             parameters.Add("LName", user.LName, DbType.String);
             parameters.Add("Email", user.Email, DbType.String);
-            parameters.Add("Password", user.Password, DbType.Binary);
+            parameters.Add("Password", user.Password, DbType.String);
 
 
             using (var connection = ctx.CreateConnection())
@@ -61,12 +61,31 @@ namespace FoodDelivery.Repositories
 
         public async  Task<IEnumerable<UsersModel>> GetUsers()
         {
-            string query = "select user_id as Id, first_name as FName, last_name as LName, email as Email, password as Password  " +
-                " from users";
+            string query = "select ur.user_id as Id, first_name as FName, last_name as LName, email as Email, password as Password, role_name as Role  " +
+                "from user_role ur " +
+                "join users u on ur.user_id=u.user_id" +
+                " join roles r on ur.role_id=r.role_id ";
             using (var connection = ctx.CreateConnection())
             {
                 var users = await connection.QueryAsync<UsersModel>(query);
                 return users;
+            }
+        }
+
+        public async Task<UsersModel> GetUser(string Fname, string Password)
+        {
+            var query = "select ur.user_id as Id, first_name as FName, last_name as LName, email as Email, password as Password, role_name as Role  " +
+                "from user_role ur " +
+                "join users u on ur.user_id=u.user_id" +
+                " join roles r on ur.role_id=r.role_id " +
+                "WHERE first_name = @Fname AND password = @Password";
+           
+
+
+            using (var connection = ctx.CreateConnection())
+            {
+                var user = await connection.QuerySingleOrDefaultAsync<UsersModel>(query, new { Fname, Password });
+                return user;
             }
         }
     }

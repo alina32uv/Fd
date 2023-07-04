@@ -8,6 +8,7 @@ namespace FoodDelivery.Interfaces
         public Task<IEnumerable<UsersModel>> GetUsers();
         public Task<UsersModel> CreateUser(UsersForCreationDto user);
         public Task<UsersModel> GetUser(int id);
+        public Task<UsersModel> GetUser(string Fname, string Password );
 
     }
 }

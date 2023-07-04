@@ -1,4 +1,5 @@
-﻿using FoodDelivery.Models;
+﻿using FoodDelivery.Interfaces;
+using FoodDelivery.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,17 +15,18 @@ namespace FoodDelivery.Controllers
     public class LoginController : ControllerBase
     {
         private IConfiguration _config;
-        public LoginController(IConfiguration config)
+        private readonly IUsersRepo userRepo;
+        public LoginController(IConfiguration config, IUsersRepo userRepo)
         {
             _config = config;
-
+            this.userRepo = userRepo;
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult Login([FromBody] UserLogin userLogin)
+        public async Task<IActionResult> Login([FromBody] UserLogin userLogin)
         {
-            var user = Authenticate(userLogin);
+            var user = await AuthenticateAsync(userLogin);
 
             if(user != null)
             {
@@ -34,17 +36,16 @@ namespace FoodDelivery.Controllers
             return NotFound("Utilizatorul nu a fost gasit");
         }
 
-        private string Generate(UserModel user)
+        private string Generate(UsersModel user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Username),
-                new Claim(ClaimTypes.Email, user.EmailAddress),
-                new Claim(ClaimTypes.GivenName, user.GivenName),
-                new Claim(ClaimTypes.Surname, user.Surname),
+                new Claim(ClaimTypes.NameIdentifier, user.FName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Surname, user.LName),
                 new Claim(ClaimTypes.Role, user.Role)
             };
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],
@@ -56,11 +57,10 @@ namespace FoodDelivery.Controllers
 
         }
 
-        private UserModel Authenticate(UserLogin userLogin)
+        private async Task<UsersModel> AuthenticateAsync(UserLogin userLogin)
         {
-            var currentUser = UserConstants.Users.FirstOrDefault(x => x.Username.ToLower() == 
-            userLogin.Username.ToLower() &&  x.Password == userLogin.Password);
-         if(currentUser != null)
+            var currentUser = await userRepo.GetUser(userLogin.FName, userLogin.Password);
+            if (currentUser != null)
             {
                 return currentUser;
             }
